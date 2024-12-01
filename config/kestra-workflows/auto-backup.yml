@@ -1,0 +1,27 @@
+id: auto-backup
+namespace: backup-service
+
+inputs:
+  - name: filePath
+    type: STRING
+  - name: fileName
+    type: STRING
+    
+
+tasks:
+  - id: upload-to-s3
+    type: io.kestra.plugin.aws.s3.Upload
+    bucket: "node-uplo"
+    from: "{{ inputs.filePath }}"
+    key: "backups/{{ inputs.fileName }}"
+    region: "us-east-2"
+
+  - id: log-upload
+    type: io.kestra.core.tasks.log.Log
+    message: "File '{{ inputs.fileName }}' uploaded to S3 at backups/{{ inputs.fileName }}"
+
+  - id: send-notification
+    type: io.kestra.plugin.notifications.discord.DiscordExecution
+    webhook: "https://discord.com/api/webhooks/1312025205622837288/8GuQVfrc116lj8Nm-Nkb7pNWDxUHQJ8maCDFA4CcPh_AdtQZMltm2qBIakqnXNIZB0nI"
+    text: "Backup completed: {{ inputs.fileName }} successfully uploaded to S3!"
+s
